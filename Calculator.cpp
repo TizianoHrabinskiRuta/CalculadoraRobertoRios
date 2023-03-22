@@ -17,6 +17,8 @@ std::vector<std::vector<int>> IPCalculator::Conversions::IPToBinaryArray(IP *IPT
 {
     std::vector<std::vector<int>> ReturningArray (4, std::vector<int>(8, 0));
 
+    std::vector<int> CurrentBinaryResult;
+
 
 
 }
