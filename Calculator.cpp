@@ -1,24 +1,73 @@
 #include <bits/stdc++.h>
+#include <cmath>
 #include "Calculator.h"
 
 
 int main()
 {
-    IPCalculator::IP IPAddress(5,5,5,5,5);
+    int hola3 = 0;
 
-    IPCalculator::Conversions* Converter = new IPCalculator::Conversions();
+    IPCalculator::IP IPAddress(140, 10, 245, 100);
 
-    Converter->IPToBinaryArray(&IPAddress);
+    IPCalculator::Calculations* Converter = new IPCalculator::Calculations();
+
+    matrix Test = Converter->IPToBinaryArray(&IPAddress);
+
+    for(int i = 0; i < Test.size(); i++)
+    {
+        std::cout << "Division: " << i << std::endl;
+        for(int j = 0; j < Test[i].size(); j++)
+        {
+            std::cout << Test[i][j] << std::endl;
+        }
+    }
+
+
+    std::cout << "Escriba cualquier cosa y apriete enter para salir." << std::endl;
+    std::cin >> hola3;
 
     return 0;
 }
 
-std::vector<std::vector<int>> IPCalculator::Conversions::IPToBinaryArray(IP *IPToConvert)
+matrix IPCalculator::Calculations::IPToBinaryArray(IPCalculator::IP *IPToConvert)
 {
-    std::vector<std::vector<int>> ReturningArray (4, std::vector<int>(8, 0));
+    matrix ReturningArray (4, std::vector<int>(8, 0));
 
-    std::vector<int> CurrentBinaryResult;
+    int Dividend = 0;
+    int Index = 7;
 
+   for(int i = 0 ; i != 4 ; i++)
+   {
+        Index = 7;
 
+        /* Select the correct octet */
+        if(i == 0)
+            Dividend = IPToConvert->_FirstQuarter();
 
+        else if (i == 1)
+            Dividend = IPToConvert->_SecondQuarter();
+
+        else if (i == 2)
+        Dividend = IPToConvert->_ThirdQuarter();
+
+        else 
+        Dividend = IPToConvert->_FourthQuarter();
+        
+        while(Dividend != 0)    
+        {
+            ReturningArray[i][Index] = Dividend % 2;
+            Dividend = std::floor(Dividend / 2);
+
+            Index--;
+        }  
+
+   }
+
+    return ReturningArray;
+
+}
+
+matrix IPCalculator::Calculations::GetMaskFromSubnetID(IPCalculator::IP *SubnetID)
+{
+    
 }
