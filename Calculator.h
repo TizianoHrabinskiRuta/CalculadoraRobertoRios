@@ -78,6 +78,7 @@ namespace IPCalculator
 
          matrix IPToBinaryArray(IPCalculator::IP *IPToConvert);
          IPCalculator::IP BinaryArrayToIP(matrix *BinaryArray);
+         IPCalculator::IP GetSubnetMask( matrix *BroadcastID);
         
 
          void PrintIP(IPCalculator::IP *IPToPrint);
