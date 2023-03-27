@@ -16,7 +16,7 @@ namespace IPCalculator
                     return;
                 }
 
-                if(first <= 0 || second <= 0 || third <= 0 || fourth <= 0)
+                if(first < 0 || second < 0 || third < 0 || fourth < 0)
                 {
                     std::cout << "Un octeto fue inferior a 0." << std::endl;
                     return;
@@ -28,7 +28,34 @@ namespace IPCalculator
                 this->FourthQuarter = fourth;
             }
 
-            
+            void AssignOctet(int Octet, int Value)
+            {
+                if(Value > 255 || Value < 0) return;
+
+                switch(Octet)
+                {
+                    case 1:
+                        this->FirstQuarter = Value;
+                        break;
+                    
+                    case 2: 
+                        this->SecondQuarter = Value;
+                        break;
+
+                    case 3:
+                        this->ThirdQuarter = Value;
+                        break;
+
+                    case 4:
+                        this->FourthQuarter = Value;
+                        break;
+
+                    default:
+                        std::cout << "Valor de parametro octeto tiene que ser entre 1 y 4 inclusive." << std::endl;
+                        break;                
+                }       
+
+            }
 
            int _FirstQuarter() const { return this->FirstQuarter; }
            int _SecondQuarter() const { return this->SecondQuarter; }
@@ -50,11 +77,13 @@ namespace IPCalculator
         public:
 
          matrix IPToBinaryArray(IPCalculator::IP *IPToConvert);
-         matrix GetMaskFromSubnetID(IPCalculator::IP *SubnetID);
+         IPCalculator::IP BinaryArrayToIP(matrix *BinaryArray);
+        
 
-         /* 
-
-         */
+         void PrintIP(IPCalculator::IP *IPToPrint);
+         void PrintBinaryArray(matrix *MatrixToPrint);
+        
+        
           
 
     };

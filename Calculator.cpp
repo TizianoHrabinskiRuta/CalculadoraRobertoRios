@@ -5,32 +5,23 @@
 
 int main()
 {
-    int hola3 = 0;
+   int hola = 4;
 
-    IPCalculator::IP IPAddress(140, 10, 245, 100);
+   IPCalculator::IP Test(140, 200, 120, 79);
 
-    IPCalculator::Calculations* Converter = new IPCalculator::Calculations();
+   IPCalculator::Calculations* Calculator = new IPCalculator::Calculations();
 
-    matrix Test = Converter->IPToBinaryArray(&IPAddress);
-
-    for(int i = 0; i < Test.size(); i++)
-    {
-        std::cout << "Division: " << i << std::endl;
-        for(int j = 0; j < Test[i].size(); j++)
-        {
-            std::cout << Test[i][j] << std::endl;
-        }
-    }
-
-
-    std::cout << "Escriba cualquier cosa y apriete enter para salir." << std::endl;
-    std::cin >> hola3;
-
+  
+    std::cin >> hola;
     return 0;
 }
 
+
+
+
 matrix IPCalculator::Calculations::IPToBinaryArray(IPCalculator::IP *IPToConvert)
 {
+    /* Tested, works correctly. */
     matrix ReturningArray (4, std::vector<int>(8, 0));
 
     int Dividend = 0;
@@ -67,7 +58,83 @@ matrix IPCalculator::Calculations::IPToBinaryArray(IPCalculator::IP *IPToConvert
 
 }
 
-matrix IPCalculator::Calculations::GetMaskFromSubnetID(IPCalculator::IP *SubnetID)
+IPCalculator::IP IPCalculator::Calculations::BinaryArrayToIP(matrix *BinaryArray)
 {
+    /* Tested, works */
+    IPCalculator::IP ReturningIP(0, 0, 0, 0);
+
+    int CalculatedOctetValue = 0;
+    int StepValue = 1;
+        
+
+    for(int i = 0; i < BinaryArray[0].size() ; i++)
+    {
     
+        for(int j = BinaryArray[0][i].size() - 1 ; j >= 0 ; j--)
+        {
+            if( BinaryArray[0][i][j] == 1)
+                CalculatedOctetValue += StepValue;
+
+            StepValue *= 2;
+        }
+
+        ReturningIP.AssignOctet(i + 1, CalculatedOctetValue);
+        CalculatedOctetValue = 0;
+        StepValue = 1;
+    }
+
+   
+
+    return ReturningIP;
 }
+
+void IPCalculator::Calculations::PrintIP(IPCalculator::IP *IPToPrint)
+{
+    /* Tested, works correctly. */
+    std::cout << IPToPrint->_FirstQuarter() << "." << IPToPrint->_SecondQuarter() << "." << IPToPrint->_ThirdQuarter() << "." << IPToPrint->_FourthQuarter() << std::endl;
+}
+
+void IPCalculator::Calculations::PrintBinaryArray(matrix *MatrixToPrint)
+{
+    /* Tested, works correctly. */
+
+    std::vector<char> Buffer;
+
+    for( int i = 0; i < MatrixToPrint[0].size(); i++)
+    {
+        for( int j = 0; j < MatrixToPrint[0][i].size(); j++ )
+        {
+            if(MatrixToPrint[0][i][j] == 0)
+                Buffer.push_back('0');
+
+            else if(MatrixToPrint[0][i][j] == 1)
+                Buffer.push_back('1');
+        }        
+
+        /* Avoids placing a lone point at the end of the buffer when all the bits have been added */
+        if(i < MatrixToPrint[0].size() - 1)
+            Buffer.push_back('.');
+    }
+
+ 
+    for(int i = 0; i < Buffer.size(); i++)
+        std::cout <<  Buffer[i] << std::endl;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
