@@ -28,6 +28,35 @@ namespace IPCalculator
                 this->FourthQuarter = fourth;
             }
 
+            IP(int first, int second, int third, int fourth, bool _IsInvalidIP)
+            {
+                 if(first > 255 || second > 255 || third > 255 || fourth > 255)
+                {
+                    std::cout << "Un octeto superó el limite de 255." << std::endl;
+                    return;
+                }
+
+                if(first < 0 || second < 0 || third < 0 || fourth < 0)
+                {
+                    std::cout << "Un octeto fue inferior a 0." << std::endl;
+                    return;
+                }
+
+                this->FirstQuarter = first;
+                this->SecondQuarter = second;
+                this->ThirdQuarter = third;
+                this->FourthQuarter = fourth;
+                this->IsInvalidIP = _IsInvalidIP;
+            }
+
+            void operator = (IPCalculator::IP RightOperand)
+            {
+                this->AssignOctet(1, RightOperand._FirstQuarter());
+                this->AssignOctet(2, RightOperand._SecondQuarter());
+                this->AssignOctet(3, RightOperand._ThirdQuarter());
+                this->AssignOctet(4, RightOperand._FourthQuarter());
+            }
+
             void AssignOctet(int Octet, int Value)
             {
                 if(Value > 255 || Value < 0) return;
@@ -37,8 +66,8 @@ namespace IPCalculator
                     case 1:
                         this->FirstQuarter = Value;
                         break;
-                    
-                    case 2: 
+
+                    case 2:
                         this->SecondQuarter = Value;
                         break;
 
@@ -52,8 +81,8 @@ namespace IPCalculator
 
                     default:
                         std::cout << "Valor de parametro octeto tiene que ser entre 1 y 4 inclusive." << std::endl;
-                        break;                
-                }       
+                        break;
+                }
 
             }
 
@@ -61,6 +90,7 @@ namespace IPCalculator
            int _SecondQuarter() const { return this->SecondQuarter; }
            int _ThirdQuarter() const { return this->ThirdQuarter; }
            int _FourthQuarter() const { return this->FourthQuarter; }
+           bool IsInvalidIP = false;
 
         private:
 
@@ -77,15 +107,21 @@ namespace IPCalculator
         public:
 
          matrix IPToBinaryArray(IPCalculator::IP *IPToConvert);
+
          IPCalculator::IP BinaryArrayToIP(matrix *BinaryArray);
-         IPCalculator::IP GetSubnetMask( matrix *BroadcastID);
-        
+         IPCalculator::IP GetSubnetMask(matrix *SubnetID, matrix *BroadcastID); //Most likely works 90% of the time. Not very fast
+         IPCalculator::IP GetFirstHost(IPCalculator::IP *SubnetID);
+         IPCalculator::IP GetLastHost(IPCalculator::IP *BroadcastID);
+         IPCalculator::IP GetBroadcastID(IPCalculator::IP *LastHost);
+         IPCalculator::IP GetSubnetID(IPCalculator::IP *Subnetmask, IPCalculator::IP *BroadcastID); // Most likely works 90% of the time. Good speed.
+         IPCalculator::IP GetDecimalMask(int Mask);
+         IPCalculator::IP GetBroadcastID(IPCalculator::IP *SubnetID, IPCalculator::IP *SubnetMask);
 
          void PrintIP(IPCalculator::IP *IPToPrint);
          void PrintBinaryArray(matrix *MatrixToPrint);
-        
-        
-          
+
+
+
 
     };
 
