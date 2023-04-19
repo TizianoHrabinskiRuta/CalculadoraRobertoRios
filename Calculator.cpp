@@ -32,57 +32,75 @@ void IPCalculator::Calculations::ParseAndPassResults()
     std::string Line;
     std::ifstream File(Path);
 
+
+
     std::map<std::string, matrix> AllocatedMatrices;
     std::map<std::string, IPCalculator::IP> AllocatedIPs;
 
     while(getline(File, Line))
     {
+        std::cout << "Line contents: "<< Line << std::endl;
 
-        if(Line.find("VAR")!= std::string::npos)
+        if(Line.find("VAR") != std::string::npos)
         {
+            std::cout << "Var :)" << std::endl;
             unsigned int ParsingPosition = -1;
             unsigned short int Octet = 1;
-            std::string VarName = "";
+            std::string VarName = " ";
 
 
             if(Line.find("M") != std::string::npos)  //found a matrix
             {
-                ParsingPosition = Line.find("M") + 2; // Start reading a character after whiespace, so we start at the first char of the name
+                std::cout << "Found matrix" << std::endl;
+                ParsingPosition = Line.find("M") + 2; // Start reading a character after whitespace, so we start at the first char of the name
+
+                std::cout << ParsingPosition << std::endl;
+                std::cout << Line[ParsingPosition] << std::endl;
 
                 while(Line[ParsingPosition] != ' '); // Find the variable name
                 {
+                    std::cout << "maybe here?" << std::endl;
                     VarName += Line[ParsingPosition];
                     ParsingPosition++;
                 }
 
                 ParsingPosition++; // Skip the whitespace
-                short int Index = 0; 
+                short int Index = 0;
                 AllocatedMatrices[VarName] = matrix(4, std::vector<int>(8,0)); // Initialize the space
 
                 while(Line[ParsingPosition] <= Line.size())
                 {
                     AllocatedMatrices[VarName][Octet - 1][Index] = Line[ParsingPosition] - '0';
                     Index++;
+                    ParsingPosition++;
 
-                    if(Index == AllocatedMatrices[VarName][Octet - 1].size())
+                    if(Index == AllocatedMatrices[VarName][Octet - 1].size()) // If we have reached the end of the current octet
                     {
-                        Index = 0;
-                        Octet++;
+                        Index = 0; // Reset to the beginning of the next octet
+                        Octet++; // increment
+                        ParsingPosition++; // Skip the '.'
                     }
 
                 }
 
             }
 
-            else if (Line.find("I")); //found an IP
+            else if (Line.find("I")) //found an IP
+            {
+
+
+
+            }
         }
 
-        if(Line.find("0x1") != std::string::npos) // if it has found the instruction
+        if(Line.find("0x1") != std::string::npos) // }if it has found the instruction
         {
 
         }
     }
 
+
+    PrintBinaryArray(&AllocatedMatrices["Test"]);
 
 }
 
