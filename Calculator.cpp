@@ -1,22 +1,89 @@
 #include <bits/stdc++.h>
 #include <cmath>
+#include <fstream>
+#include <string>
+#include <map>
+#include <sstream>
+
 #include "Calculator.h"
 
+#define Print(x) std::cout << x << std::endl;
+
 //Masks that have a number diferent from 255, 254, 252, 248, 240, 224, 192, 178 or 0, are wrong.
+
 int main()
 {
-   int hola = 4;
+    char Input;
 
-    IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
+    IPCalculator::Calculations* Calculator = new IPCalculator::Calculations();
 
-   IPCalculator::IP IP(10, 10, 16, 0);
-   matrix Binary = Calculator->IPToBinaryArray(&IP);
+    Calculator->ParseAndPassResults();
 
-   Calculator->PrintBinaryArray(&Binary);
-
-    delete Calculator;
-    std::cin >> hola;
+    std::cin >> Input;
     return 0;
+}
+
+void IPCalculator::Calculations::ParseAndPassResults()
+{
+    std::cout << "Ingrese la ruta del archivo para leer:" << std::endl;
+    std::string Path;
+    std::cin >> Path;
+
+    std::string Line;
+    std::ifstream File(Path);
+
+    std::map<std::string, matrix> AllocatedMatrices;
+    std::map<std::string, IPCalculator::IP> AllocatedIPs;
+
+    while(getline(File, Line))
+    {
+
+        if(Line.find("VAR")!= std::string::npos)
+        {
+            unsigned int ParsingPosition = -1;
+            unsigned short int Octet = 1;
+            std::string VarName = "";
+
+
+            if(Line.find("M") != std::string::npos)  //found a matrix
+            {
+                ParsingPosition = Line.find("M") + 2; // Start reading a character after whiespace, so we start at the first char of the name
+
+                while(Line[ParsingPosition] != ' '); // Find the variable name
+                {
+                    VarName += Line[ParsingPosition];
+                    ParsingPosition++;
+                }
+
+                ParsingPosition++; // Skip the whitespace
+                short int Index = 0; 
+                AllocatedMatrices[VarName] = matrix(4, std::vector<int>(8,0)); // Initialize the space
+
+                while(Line[ParsingPosition] <= Line.size())
+                {
+                    AllocatedMatrices[VarName][Octet - 1][Index] = Line[ParsingPosition] - '0';
+                    Index++;
+
+                    if(Index == AllocatedMatrices[VarName][Octet - 1].size())
+                    {
+                        Index = 0;
+                        Octet++;
+                    }
+
+                }
+
+            }
+
+            else if (Line.find("I")); //found an IP
+        }
+
+        if(Line.find("0x1") != std::string::npos) // if it has found the instruction
+        {
+
+        }
+    }
+
+
 }
 
 void IPCalculator::Calculations::PrintIP(IPCalculator::IP *IPToPrint)
@@ -95,6 +162,8 @@ matrix IPCalculator::Calculations::IPToBinaryArray(IPCalculator::IP *IPToConvert
 
 IPCalculator::IP IPCalculator::Calculations::GetSubnetMask(matrix *SubnetID, matrix *BroadcastID)
 {
+
+    /* Tested, seems to work correctly*/
     int Marker = 0;
     bool MarkerFlag = false;
 
@@ -286,7 +355,7 @@ IPCalculator::IP IPCalculator::Calculations::GetSubnetID(IPCalculator::IP *Subne
 
 IPCalculator::IP IPCalculator::Calculations::GetDecimalMask(int Mask)
 {
-    // WIP
+    /* Tested, seems to work correctly */
     IPCalculator::IP ReturningIP(0, 0, 0, 0);
     matrix BinaryMask(4, std::vector<int>(8,0));
     bool StopFlag = false;
@@ -318,13 +387,52 @@ IPCalculator::IP IPCalculator::Calculations::GetDecimalMask(int Mask)
 
 IPCalculator::IP IPCalculator::Calculations::GetBroadcastID(IPCalculator::IP *SubnetID, IPCalculator::IP *SubnetMask)
 {
-    IPCalculator::IP ReturningIP(0, 0, 0, 0);
+   IPCalculator::IP ReturningIP = *(SubnetID);
+   IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
 
-    matrix SubnetIDMatrix(4, std::vector<int>(8, 0));
-    matrix SubnetMaskMatrix(4, std::vector<int>(8, 0));
-    matrix ANDResult(4, std::vector<int>(8, 0));
+   matrix SubnetMaskMatrix = Calculator->IPToBinaryArray(SubnetMask);
+   int LeftoverValue = 0;
+   int Step = 1;
+   int Ceroes = 0;
 
+   if(SubnetMask->_FourthQuarter() == 0)
+   {
+       for(int i = 0; i < 8; i++)
+       {
+           if( SubnetMaskMatrix[2][i] == 0)
+                Ceroes++;
+       }
 
+       while(Ceroes != 0)
+       {
+           LeftoverValue += Step;
+           Step *= 2;
+           Ceroes--;
+       }
 
+       ReturningIP.AssignOctet(3, SubnetID->_ThirdQuarter() + LeftoverValue);
+       ReturningIP.AssignOctet(4, 255);
 
+   }
+
+   else if( SubnetMask->_FourthQuarter() != 0)
+   {
+       for(int i = 0; i < 8; i++)
+       {
+           if( SubnetMaskMatrix[3][i] == 0)
+                Ceroes++;
+       }
+
+       while(Ceroes != 0)
+       {
+           LeftoverValue += Step;
+           Step *= 2;
+           Ceroes--;
+       }
+
+       ReturningIP.AssignOctet(4, SubnetID->_FourthQuarter() + LeftoverValue);
+   }
+
+   delete Calculator;
+   return ReturningIP;
 }

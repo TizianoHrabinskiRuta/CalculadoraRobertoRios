@@ -1,6 +1,6 @@
 #include <vector>
 
-#define matrix std::vector<std::vector<int>>
+typedef std::vector<std::vector<int>> matrix;
 
 namespace IPCalculator
 {
@@ -102,7 +102,7 @@ namespace IPCalculator
         };
 
 
-    class Calculations
+    class Calculations // this is not a flawless calculator. Some calculations are impossible, yet it completes them. Double check your results before writing them down.
     {
         public:
 
@@ -115,14 +115,14 @@ namespace IPCalculator
          IPCalculator::IP GetBroadcastID(IPCalculator::IP *LastHost);
          IPCalculator::IP GetSubnetID(IPCalculator::IP *Subnetmask, IPCalculator::IP *BroadcastID); // Most likely works 90% of the time. Good speed.
          IPCalculator::IP GetDecimalMask(int Mask);
-         IPCalculator::IP GetBroadcastID(IPCalculator::IP *SubnetID, IPCalculator::IP *SubnetMask);
+         IPCalculator::IP GetBroadcastID(IPCalculator::IP *SubnetID, IPCalculator::IP *SubnetMask); // Prone to give errors when dealing with something like 1.1.0.0 or 1.0.0.0
 
          void PrintIP(IPCalculator::IP *IPToPrint);
          void PrintBinaryArray(matrix *MatrixToPrint);
 
-
-
-
+         void ParseAndPassResults();
     };
+
+
 
 }
