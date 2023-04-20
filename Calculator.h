@@ -7,6 +7,13 @@ namespace IPCalculator
     struct IP
     {
         public:
+            IP()
+            {
+                this->FirstQuarter = 0;
+                this->SecondQuarter = 0;
+                this->ThirdQuarter = 0;
+                this->FourthQuarter = 0;
+            }
 
             IP(int first, int second, int third, int fourth)
             {
@@ -121,6 +128,10 @@ namespace IPCalculator
          void PrintBinaryArray(matrix *MatrixToPrint);
 
          void ParseAndPassResults();
+
+
+         
+
     };
 
 

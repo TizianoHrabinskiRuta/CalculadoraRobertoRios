@@ -39,27 +39,21 @@ void IPCalculator::Calculations::ParseAndPassResults()
 
     while(getline(File, Line))
     {
-        std::cout << "Line contents: "<< Line << std::endl;
+
 
         if(Line.find("VAR") != std::string::npos)
         {
-            std::cout << "Var :)" << std::endl;
+
             unsigned int ParsingPosition = -1;
             unsigned short int Octet = 1;
-            std::string VarName = " ";
+            std::string VarName = "";
 
 
             if(Line.find("M") != std::string::npos)  //found a matrix
             {
-                std::cout << "Found matrix" << std::endl;
                 ParsingPosition = Line.find("M") + 2; // Start reading a character after whitespace, so we start at the first char of the name
-
-                std::cout << ParsingPosition << std::endl;
-                std::cout << Line[ParsingPosition] << std::endl;
-
-                while(Line[ParsingPosition] != ' '); // Find the variable name
+                while(Line[ParsingPosition] != ' ') // Find the variable name
                 {
-                    std::cout << "maybe here?" << std::endl;
                     VarName += Line[ParsingPosition];
                     ParsingPosition++;
                 }
@@ -68,9 +62,16 @@ void IPCalculator::Calculations::ParseAndPassResults()
                 short int Index = 0;
                 AllocatedMatrices[VarName] = matrix(4, std::vector<int>(8,0)); // Initialize the space
 
-                while(Line[ParsingPosition] <= Line.size())
+
+                while(ParsingPosition <= Line.size() - 1)
                 {
                     AllocatedMatrices[VarName][Octet - 1][Index] = Line[ParsingPosition] - '0';
+                    if(Line[ParsingPosition] - '0' != 1 || Line[ParsingPosition] != 0)
+                    {
+                        std::cout << "Binary IP contains invalid values" << std::endl;
+                        return;
+                    }
+
                     Index++;
                     ParsingPosition++;
 
@@ -88,6 +89,35 @@ void IPCalculator::Calculations::ParseAndPassResults()
             else if (Line.find("I")) //found an IP
             {
 
+                ParsingPosition = Line.find("I") + 2; // Start reading a character after whitespace, so we start at the first char of the name
+                while(Line[ParsingPosition] != ' ') // Find the variable name
+                {
+                    VarName += Line[ParsingPosition];
+                    ParsingPosition++;
+                }
+
+                ParsingPosition++; // Skip the whitespace
+                short int OctetLength = 1;
+                IPCalculator::IP Temp(0,0,0,0);
+
+                AllocatedIPs[VarName] = Temp; // Initialize the space
+
+                std::cout << "Parsing: " << Line[ParsingPosition] << " before reading value" << std::endl;
+
+                while(ParsingPosition <= Line.size() - 1)
+                {
+
+                    if(Line[ParsingPosition] == '.')
+                    {
+                        AllocatedIPs[VarName].AssignOctet(Octet, std::stoi(Line.substr(ParsingPosition - OctetLength , ParsingPosition - 1)));
+                        Octet++;
+                        OctetLength = 1;
+                    }
+
+                   OctetLength++;
+                   ParsingPosition++;
+
+                }
 
 
             }
@@ -100,7 +130,7 @@ void IPCalculator::Calculations::ParseAndPassResults()
     }
 
 
-    PrintBinaryArray(&AllocatedMatrices["Test"]);
+    PrintIP(&AllocatedIPs["Test"]);
 
 }
 
