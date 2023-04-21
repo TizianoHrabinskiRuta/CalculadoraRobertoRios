@@ -33,21 +33,19 @@ void IPCalculator::Calculations::ParseAndPassResults()
     std::ifstream File(Path);
 
 
-
     std::map<std::string, matrix> AllocatedMatrices;
     std::map<std::string, IPCalculator::IP> AllocatedIPs;
 
     while(getline(File, Line))
     {
 
-
-        if(Line.find("VAR") != std::string::npos)
+        if(Line.find("VAR") != std::string::npos) // For some reason its not saving a second variable correctly. kill me
         {
+            Print("Parsing variable");
 
             unsigned int ParsingPosition = -1;
             unsigned short int Octet = 1;
             std::string VarName = "";
-
 
             if(Line.find("M") != std::string::npos)  //found a matrix
             {
@@ -97,40 +95,68 @@ void IPCalculator::Calculations::ParseAndPassResults()
                 }
 
                 ParsingPosition++; // Skip the whitespace
-                short int OctetLength = 1;
                 IPCalculator::IP Temp(0,0,0,0);
-
                 AllocatedIPs[VarName] = Temp; // Initialize the space
+                
+                std::string OctetValue = "";
 
-                std::cout << "Parsing: " << Line[ParsingPosition] << " before reading value" << std::endl;
-
-                while(ParsingPosition <= Line.size() - 1)
+                while(ParsingPosition <= Line.size())
                 {
-
-                    if(Line[ParsingPosition] == '.')
+                
+                    if(Line[ParsingPosition] == '.' || ParsingPosition == Line.size() ) // if we've read all the numbers in the octet or reached npos
                     {
-                        AllocatedIPs[VarName].AssignOctet(Octet, std::stoi(Line.substr(ParsingPosition - OctetLength , ParsingPosition - 1)));
+                        AllocatedIPs[VarName].AssignOctet(Octet, std::stoi(OctetValue)); // convert the string to and int and assign the corresponding octet the converted value
+                        OctetValue = ""; // reset the string that sets the value
+                        
+                        ParsingPosition++; // evaluate the following index
                         Octet++;
-                        OctetLength = 1;
+                        continue; 
                     }
-
-                   OctetLength++;
-                   ParsingPosition++;
-
+                    
+                    OctetValue += Line[ParsingPosition];
+                    ParsingPosition++;
                 }
 
 
             }
         }
 
-        if(Line.find("0x1") != std::string::npos) // }if it has found the instruction
-        {
 
+        else if(Line.find("GSM") != std::string::npos) // if it has found the instruction
+        {
+            unsigned int ParsingPosition = Line.find("GSM") + 4;
+            std::string Var1 = "";
+            std::string Var2 = "";
+
+            while(Line[ParsingPosition] != ',')
+            {
+                Var1 += Line[ParsingPosition];
+                ParsingPosition++;
+            }
+
+            std::cout << "Var1:" << Var1 << "."<< std::endl;
+            ParsingPosition += 2;
+
+            while(ParsingPosition <= Line.size())
+            {
+                Var2 += Line[ParsingPosition];
+                ParsingPosition++;
+            }
+
+            std::cout << "Var2:" << Var2 << "." <<std::endl;
+            IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
+
+            IPCalculator::IP Result(0,0,0,0);
+            matrix Matrix1 = Calculator->IPToBinaryArray(&AllocatedIPs[Var1]);
+            matrix Matrix2 = Calculator->IPToBinaryArray(&AllocatedIPs[Var2]);
+            Calculator->PrintIP(&AllocatedIPs[Var1]);
+            Calculator->PrintIP(&AllocatedIPs[Var2]);
+
+            Result = Calculator->GetSubnetMask(&Matrix1, &Matrix2);
+            Calculator->PrintIP(&Result);
+            delete Calculator;
         }
     }
-
-
-    PrintIP(&AllocatedIPs["Test"]);
 
 }
 

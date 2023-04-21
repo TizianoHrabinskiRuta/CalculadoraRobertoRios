@@ -1,3 +1,22 @@
-Instruction definition:
+Instruction set:
 
-Instruction (Modifier) (Name) Value 
+GSM: 
+GetSubnetMask
+
+-Param1: SubnetID
+-Param2: BroadcastID
+
+Description:
+Returns the subnet mask given the SubnetID and the BroadcastID. Does not check for impossibilities or edge cases.
+
+Example program:
+
+VAR I Subnet 192.168.0.1
+VAR I Broadcast 192.168.0.255
+
+GSM Subnet, Broadcast
+
+END
+
+Notes: The space between the comma and the second parameter is compulsory.
+       All operations that are calculations are printed out automatically.
