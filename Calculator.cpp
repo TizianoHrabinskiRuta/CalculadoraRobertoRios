@@ -15,15 +15,15 @@ int main()
 {
     char Input;
 
-    IPCalculator::Calculations* Calculator = new IPCalculator::Calculations();
+    IPCalculator::Parser* Parser = new IPCalculator::Parser();
 
-    Calculator->ParseAndPassResults();
+    Parser->ParseAndPassResults();
 
     std::cin >> Input;
     return 0;
 }
 
-void IPCalculator::Calculations::ParseAndPassResults()
+void IPCalculator::Parser::ParseAndPassResults()
 {
     std::cout << "Ingrese la ruta del archivo para leer:" << std::endl;
     std::string Path;
@@ -38,7 +38,7 @@ void IPCalculator::Calculations::ParseAndPassResults()
 
     bool RAVFlag = false;
     bool IsIP = true;
-    std::string VarName = "";
+    std::string RAVVarName = "";
 
     while(getline(File, Line))
     {
@@ -102,7 +102,7 @@ void IPCalculator::Calculations::ParseAndPassResults()
                 AllocatedIPs[VarName] = Temp; // Initialize the space
 
                 std::string OctetValue = "";
-
+                /*
                 while(ParsingPosition <= Line.size())
                 {
 
@@ -119,14 +119,37 @@ void IPCalculator::Calculations::ParseAndPassResults()
                     OctetValue += Line[ParsingPosition];
                     ParsingPosition++;
                 }
+                */
+
+                AllocatedIPs[VarName] = this->ParseIP((size_t)ParsingPosition, Line);
+
+                IPCalculator::Calculations::PrintIP(&AllocatedIPs[VarName]);
 
 
             }
         }
 
-        else if(Line.find ("RAV"))
+        else if(Line.find ("RAV") != std::string::npos)
         {
+            unsigned short int ParsingPosition = Line.find("RAV") + 4;
 
+            IsIP = (Line[ParsingPosition] == 'I') ? true : false;
+
+            RAVFlag = (Line[ParsingPosition + 6] == 'R') ? true : false;
+
+            if(IsIP && !RAVFlag)
+            {
+                ParsingPosition += 8;
+
+                while(Line[ParsingPosition] != ' ')
+                {
+                    RAVVarName += Line[ParsingPosition];
+                    ParsingPosition++;
+                }
+
+
+
+            }
 
         }
 
@@ -188,6 +211,25 @@ void IPCalculator::Calculations::ParseAndPassResults()
 
     }
 
+}
+
+IPCalculator::IP IPCalculator::Parser::ParseIP(size_t StartIndex, const std::string &Line) // buggy
+{
+    IPCalculator::IP ReturningIP(0,0,0,0);
+    size_t ParsingPosition = StartIndex;
+
+    unsigned short int CurrentOctet = 1;
+    std::string OctetValue = "";
+
+    while(Line[ParsingPosition] != ' ' || ParsingPosition <= Line.size())
+    {
+      
+        if(Line[ParsingPosition] == '.' || )
+
+
+    }
+
+    return ReturningIP;
 }
 
 void IPCalculator::Calculations::PrintIP(IPCalculator::IP *IPToPrint)

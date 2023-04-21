@@ -124,16 +124,21 @@ namespace IPCalculator
          IPCalculator::IP GetDecimalMask(int Mask);
          IPCalculator::IP GetBroadcastID(IPCalculator::IP *SubnetID, IPCalculator::IP *SubnetMask); // Prone to give errors when dealing with something like 1.1.0.0 or 1.0.0.0
 
-         void PrintIP(IPCalculator::IP *IPToPrint);
-         void PrintBinaryArray(matrix *MatrixToPrint);
+         static void PrintIP(IPCalculator::IP *IPToPrint);
+         static void PrintBinaryArray(matrix *MatrixToPrint);
 
-         void ParseAndPassResults();
-         
-
+       
          
 
     };
 
+    class Parser
+    {
+        public:
 
+        void ParseAndPassResults();
+        IPCalculator::IP ParseIP(size_t StartIndex, const std::string &Line); 
+
+    };
 
 }
