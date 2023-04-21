@@ -35,6 +35,7 @@ void IPCalculator::Calculations::ParseAndPassResults()
 
     std::map<std::string, matrix> AllocatedMatrices;
     std::map<std::string, IPCalculator::IP> AllocatedIPs;
+
     bool RAVFlag = false;
     bool IsIP = true;
     std::string VarName = "";

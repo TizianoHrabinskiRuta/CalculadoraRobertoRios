@@ -1,4 +1,2 @@
-VAR I SubnetID 192.168.10.0
 
-GFH SubnetID
 	  
