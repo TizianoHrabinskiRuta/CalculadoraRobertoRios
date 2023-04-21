@@ -1,5 +1,4 @@
-VAR I SubnetID 10.10.16.0
-VAR I BroadcastID 10.10.31.255
+VAR I SubnetID 192.168.10.0
 
-GSM SubnetID, BroadcastID
+GFH SubnetID
 	  

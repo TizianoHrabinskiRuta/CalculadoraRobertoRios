@@ -35,13 +35,15 @@ void IPCalculator::Calculations::ParseAndPassResults()
 
     std::map<std::string, matrix> AllocatedMatrices;
     std::map<std::string, IPCalculator::IP> AllocatedIPs;
+    bool RAVFlag = false;
+    bool IsIP = true;
+    std::string VarName = "";
 
     while(getline(File, Line))
     {
 
         if(Line.find("VAR") != std::string::npos) // For some reason its not saving a second variable correctly. kill me
         {
-            Print("Parsing variable");
 
             unsigned int ParsingPosition = -1;
             unsigned short int Octet = 1;
@@ -97,28 +99,34 @@ void IPCalculator::Calculations::ParseAndPassResults()
                 ParsingPosition++; // Skip the whitespace
                 IPCalculator::IP Temp(0,0,0,0);
                 AllocatedIPs[VarName] = Temp; // Initialize the space
-                
+
                 std::string OctetValue = "";
 
                 while(ParsingPosition <= Line.size())
                 {
-                
+
                     if(Line[ParsingPosition] == '.' || ParsingPosition == Line.size() ) // if we've read all the numbers in the octet or reached npos
                     {
                         AllocatedIPs[VarName].AssignOctet(Octet, std::stoi(OctetValue)); // convert the string to and int and assign the corresponding octet the converted value
                         OctetValue = ""; // reset the string that sets the value
-                        
+
                         ParsingPosition++; // evaluate the following index
                         Octet++;
-                        continue; 
+                        continue;
                     }
-                    
+
                     OctetValue += Line[ParsingPosition];
                     ParsingPosition++;
                 }
 
 
             }
+        }
+
+        else if(Line.find ("RAV"))
+        {
+
+
         }
 
 
@@ -134,28 +142,49 @@ void IPCalculator::Calculations::ParseAndPassResults()
                 ParsingPosition++;
             }
 
-            std::cout << "Var1:" << Var1 << "."<< std::endl;
             ParsingPosition += 2;
 
-            while(ParsingPosition <= Line.size())
+            while(ParsingPosition <= Line.size() - 1)
             {
                 Var2 += Line[ParsingPosition];
                 ParsingPosition++;
             }
 
-            std::cout << "Var2:" << Var2 << "." <<std::endl;
             IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
 
             IPCalculator::IP Result(0,0,0,0);
             matrix Matrix1 = Calculator->IPToBinaryArray(&AllocatedIPs[Var1]);
             matrix Matrix2 = Calculator->IPToBinaryArray(&AllocatedIPs[Var2]);
-            Calculator->PrintIP(&AllocatedIPs[Var1]);
-            Calculator->PrintIP(&AllocatedIPs[Var2]);
 
             Result = Calculator->GetSubnetMask(&Matrix1, &Matrix2);
             Calculator->PrintIP(&Result);
             delete Calculator;
         }
+
+        else if(Line.find("GFH") != std::string::npos)
+        {
+            unsigned short int ParsingPosition = Line.find("GFH") + 4;
+
+            std::string Var1 = "";
+
+            while(ParsingPosition <= Line.size() - 1)
+            {
+
+                Var1 += Line[ParsingPosition];
+                ParsingPosition++;
+            }
+
+            IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
+
+            IPCalculator::IP Temp(0,0,0,0);
+            Temp = Calculator->GetFirstHost(&AllocatedIPs[Var1]);
+            Calculator->PrintIP(&Temp);
+
+            delete Calculator;
+        }
+
+
+
     }
 
 }

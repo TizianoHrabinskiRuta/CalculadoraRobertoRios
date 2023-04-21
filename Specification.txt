@@ -1,5 +1,46 @@
 Instruction set:
 
+VAR:
+Variable
+
+-Mod1
+-VariableName
+-Value
+
+Description:
+Allocates the specified data in a map for use in calculations. Mod1 specifies if the value passed is an IP in binary notation or decimal notation. I is for Decimal, and M is
+for binary.
+
+VariableName specifies the identifier for the variable
+
+Value is the value of the IP.
+
+Example program:
+
+VAR I DecimalIP 192.168.0.1
+VAR M BinaryIP 00000000.11111111.0000000.11111111
+
+
+RAV:
+ReassignVariable
+
+-Mod1: I || M
+-Mod2: A || R
+-Param1: VarName
+-Param2: Value
+
+Description:
+Reassigns a variable from either the result of an instruction, or from a direct value. Mod1 specifies the type. Mod2 specifies if its from an absolute value, or from
+the result of the following instruction.
+
+Example program:
+
+VAR I Var1 192.168.0.1
+
+RAV I A Var1 10.10.30.22
+RAV
+
+
 GSM: 
 GetSubnetMask
 
@@ -16,7 +57,22 @@ VAR I Broadcast 192.168.0.255
 
 GSM Subnet, Broadcast
 
-END
+
 
 Notes: The space between the comma and the second parameter is compulsory.
        All operations that are calculations are printed out automatically.
+
+
+GFH:
+GetFirstHost
+
+-Param1: SubnetID
+
+Description:
+Returns the first host given the SubnetID
+
+Example program:
+
+VAR I SubnetID 192.168.0.1
+
+GFH SubnetID
