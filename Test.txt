@@ -1,2 +1,6 @@
-VAR I Test 192.168.0.1
+VAR I Hola 192.168.0.1
+VAR I Hola2 192.199.0.1
+
+
+
 	  

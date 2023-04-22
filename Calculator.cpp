@@ -32,7 +32,6 @@ void IPCalculator::Parser::ParseAndPassResults()
     std::string Line;
     std::ifstream File(Path);
 
-
     std::map<std::string, matrix> AllocatedMatrices;
     std::map<std::string, IPCalculator::IP> AllocatedIPs;
 
@@ -43,99 +42,34 @@ void IPCalculator::Parser::ParseAndPassResults()
     while(getline(File, Line))
     {
 
-        if(Line.find("VAR") != std::string::npos) // For some reason its not saving a second variable correctly. kill me
+        if(Line.find("VAR") != std::string::npos) // Breaks when there is more than one space between different mods or params. Think of fix later.
         {
 
-            unsigned int ParsingPosition = -1;
-            unsigned short int Octet = 1;
             std::string VarName = "";
 
             if(Line.find("M") != std::string::npos)  //found a matrix
             {
-                ParsingPosition = Line.find("M") + 2; // Start reading a character after whitespace, so we start at the first char of the name
-                while(Line[ParsingPosition] != ' ') // Find the variable name
-                {
-                    VarName += Line[ParsingPosition];
-                    ParsingPosition++;
-                }
-
-                ParsingPosition++; // Skip the whitespace
-                short int Index = 0;
-                AllocatedMatrices[VarName] = matrix(4, std::vector<int>(8,0)); // Initialize the space
-
-
-                while(ParsingPosition <= Line.size() - 1)
-                {
-                    AllocatedMatrices[VarName][Octet - 1][Index] = Line[ParsingPosition] - '0';
-                    if(Line[ParsingPosition] - '0' != 1 || Line[ParsingPosition] != 0)
-                    {
-                        std::cout << "Binary IP contains invalid values" << std::endl;
-                        return;
-                    }
-
-                    Index++;
-                    ParsingPosition++;
-
-                    if(Index == AllocatedMatrices[VarName][Octet - 1].size()) // If we have reached the end of the current octet
-                    {
-                        Index = 0; // Reset to the beginning of the next octet
-                        Octet++; // increment
-                        ParsingPosition++; // Skip the '.'
-                    }
-
-                }
-
+                VarName = this->ParseVarName(this->GetIndexOfFollowingSequence(Line.find("M"), Line), Line);
+                
+                AllocatedMatrices[VarName] = this->ParseMatrix(this->GetIndexOfFollowingSequence(Line.find(VarName)), Line);
             }
 
             else if (Line.find("I")) //found an IP
             {
-
-                ParsingPosition = Line.find("I") + 2; // Start reading a character after whitespace, so we start at the first char of the name
-                while(Line[ParsingPosition] != ' ') // Find the variable name
-                {
-                    VarName += Line[ParsingPosition];
-                    ParsingPosition++;
-                }
-
-                ParsingPosition++; // Skip the whitespace
-                IPCalculator::IP Temp(0,0,0,0);
-                AllocatedIPs[VarName] = Temp; // Initialize the space
-
-                std::string OctetValue = "";
-                /*
-                while(ParsingPosition <= Line.size())
-                {
-
-                    if(Line[ParsingPosition] == '.' || ParsingPosition == Line.size() ) // if we've read all the numbers in the octet or reached npos
-                    {
-                        AllocatedIPs[VarName].AssignOctet(Octet, std::stoi(OctetValue)); // convert the string to and int and assign the corresponding octet the converted value
-                        OctetValue = ""; // reset the string that sets the value
-
-                        ParsingPosition++; // evaluate the following index
-                        Octet++;
-                        continue;
-                    }
-
-                    OctetValue += Line[ParsingPosition];
-                    ParsingPosition++;
-                }
-                */
-
-                AllocatedIPs[VarName] = this->ParseIP((size_t)ParsingPosition, Line);
-
-                IPCalculator::Calculations::PrintIP(&AllocatedIPs[VarName]);
-
-
+                VarName = this->ParseVarName(this->GetIndexOfFollowingSequence(Line.find("I"), Line), Line);
+            
+                AllocatedIPs[VarName] = this->ParseIP(this->GetIndexOfFollowingSequence(Line.find(VarName), Line), Line);
             }
+
         }
 
-        else if(Line.find ("RAV") != std::string::npos)
+        else if(Line.find ("RAV") != std::string::npos) // current WIP
         {
-            unsigned short int ParsingPosition = Line.find("RAV") + 4;
+            unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("RAV"), Line);
 
-            IsIP = (Line[ParsingPosition] == 'I') ? true : false;
+            IsIP = (Line[ParsingPosition] == 'I') ? true : false; // Determines the type of the variable to reassign
 
-            RAVFlag = (Line[ParsingPosition + 6] == 'R') ? true : false;
+            RAVFlag = (Line[ParsingPosition + 6] == 'R') ? true : false; // Determines whether the reassignment happens after another instruction, or from a passed value
 
             if(IsIP && !RAVFlag)
             {
@@ -153,6 +87,10 @@ void IPCalculator::Parser::ParseAndPassResults()
 
         }
 
+        else if(Line.find("PRT") != std::string::npos)
+        {
+            unsigned short int ParsingPosition = Line.find("PRT");
+        }
 
         else if(Line.find("GSM") != std::string::npos) // if it has found the instruction
         {
@@ -207,13 +145,73 @@ void IPCalculator::Parser::ParseAndPassResults()
             delete Calculator;
         }
 
-
-
     }
 
 }
 
-IPCalculator::IP IPCalculator::Parser::ParseIP(size_t StartIndex, const std::string &Line) // buggy
+unsigned short int IPCalculator::Parser::GetIndexOfFollowingSequence(size_t LastKnownCharPosition, const std::string &Line)
+{
+    unsigned short int ReturningIndex = LastKnownCharPosition;
+    
+    while(Line[ReturningIndex] == ' ')
+        ReturningIndex++;
+
+    return ReturningIndex;        
+}
+
+matrix IPCalculator::Parser::ParseMatrix(size_t StartIndex, const std::string &Line) // Both value parsers always assume that the input will be a valid length. Fix later.
+{
+    matrix ReturningMatrix(4, std::vector<int>(8,0));
+
+    unsigned short int CurrentOctet = 0;
+    unsigned short int ParsingPosition = StartIndex;
+    unsigned short int AllocationIndex = 0;
+
+    while(CurrentOctet <= 3)
+    {
+        if(Line[ParsingPosition] == '.' || ParsingPosition == Line.size())
+        {
+            CurrentOctet++;
+            AllocationIndex = 0;
+            ParsingPosition++;
+            continue;
+        }
+
+
+        if(Line[ParsingPosition] - '0' == 0 || Line[ParsingPosition] - '0' == 1)
+        {
+            ReturningMatrix[CurrentOctet][AllocationIndex] = Line[ParsingPosition] - '0';
+            AllocationIndex++;
+            ParsingPosition++;
+        }
+
+        else
+        {
+            std::cout << "IP binaria en el octeto " << CurrentOctet + 1 << " tiene un bit que no es 0 ni 1." << std::endl;
+            exit(1);
+        }
+
+    }
+
+    return ReturningMatrix;    
+    
+}
+
+std::string IPCalculator::Parser::ParseVarName(size_t StartIndex, const std::string &Line)
+{
+    std::string ReturningString = "";
+    unsigned short int ParsingPosition = StartIndex;
+
+    while(Line[ParsingPosition] != ' ')
+    {
+        ReturningString += Line[ParsingPosition];
+        ParsingPosition++;
+    }
+
+    return ReturningString;
+}
+
+IPCalculator::IP IPCalculator::Parser::ParseIP(size_t StartIndex, const std::string &Line) 
 {
     IPCalculator::IP ReturningIP(0,0,0,0);
     size_t ParsingPosition = StartIndex;
@@ -221,11 +219,20 @@ IPCalculator::IP IPCalculator::Parser::ParseIP(size_t StartIndex, const std::str
     unsigned short int CurrentOctet = 1;
     std::string OctetValue = "";
 
-    while(Line[ParsingPosition] != ' ' || ParsingPosition <= Line.size())
+    while(CurrentOctet <= 4)
     {
       
-        if(Line[ParsingPosition] == '.' || )
+        if(Line[ParsingPosition] == '.' || ParsingPosition == Line.size())
+        {
+            ReturningIP.AssignOctet(CurrentOctet, std::stoi(OctetValue));
+            CurrentOctet++;
+            OctetValue = "";
+            ParsingPosition++;
+            continue;
+        }
 
+        OctetValue += Line[ParsingPosition];
+        ParsingPosition++;
 
     }
 
@@ -243,28 +250,20 @@ void IPCalculator::Calculations::PrintBinaryArray(matrix *MatrixToPrint)
     /* Tested, works correctly. */
 
 
-    std::vector<char> Buffer;
+    std::string ConvertedMatrix = "";
 
-    for( int i = 0; i < MatrixToPrint[0].size(); i++)
+    for(int i = 0; i < MatrixToPrint[0].size(); i++)
     {
-        for( int j = 0; j < MatrixToPrint[0][i].size(); j++ )
+        for(int j = 0; j < MatrixToPrint[0][i].size(); j++)
         {
-            if(MatrixToPrint[0][i][j] == 0)
-                Buffer.push_back('0');
-
-            else if(MatrixToPrint[0][i][j] == 1)
-                Buffer.push_back('1');
+            ConvertedMatrix += (char)MatrixToPrint[0][i][j] + '0';
         }
 
-        /* Avoids placing a lone point at the end of the buffer when all the bits have been added */
-        if(i < MatrixToPrint[0].size() - 1)
-            Buffer.push_back('.');
+        ConvertedMatrix += '.';
     }
 
-
-    for(int i = 0; i < Buffer.size(); i++)
-        std::cout <<  Buffer[i] << std::endl;
-
+    ConvertedMatrix.pop_back();
+    std::cout << ConvertedMatrix << std::endl;
 }
 
 matrix IPCalculator::Calculations::IPToBinaryArray(IPCalculator::IP *IPToConvert)

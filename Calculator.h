@@ -125,10 +125,7 @@ namespace IPCalculator
          IPCalculator::IP GetBroadcastID(IPCalculator::IP *SubnetID, IPCalculator::IP *SubnetMask); // Prone to give errors when dealing with something like 1.1.0.0 or 1.0.0.0
 
          static void PrintIP(IPCalculator::IP *IPToPrint);
-         static void PrintBinaryArray(matrix *MatrixToPrint);
-
-       
-         
+         static void PrintBinaryArray(matrix *MatrixToPrint);         
 
     };
 
@@ -136,8 +133,12 @@ namespace IPCalculator
     {
         public:
 
-        void ParseAndPassResults();
-        IPCalculator::IP ParseIP(size_t StartIndex, const std::string &Line); 
+         void ParseAndPassResults();
+
+         IPCalculator::IP ParseIP(size_t StartIndex, const std::string &Line); 
+         matrix ParseMatrix(size_t StartIndex, const std::string &Line);
+         std::string ParseVarName(size_t StartIndex, const std::string &Line);
+         unsigned short int GetIndexOfFollowingSequence(size_t LastKnownCharPosition, const std::string &Line);
 
     };
 
