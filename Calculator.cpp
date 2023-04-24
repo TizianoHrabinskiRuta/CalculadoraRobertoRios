@@ -50,15 +50,17 @@ void IPCalculator::Parser::ParseAndPassResults()
             if(Line.find("M") != std::string::npos)  //found a matrix
             {
                 VarName = this->ParseVarName(this->GetIndexOfFollowingSequence(Line.find("M"), Line), Line);
-                
-                AllocatedMatrices[VarName] = this->ParseMatrix(this->GetIndexOfFollowingSequence(Line.find(VarName)), Line);
+
+                AllocatedMatrices[VarName] = this->ParseMatrix(this->GetIndexOfFollowingSequence(Line.find(VarName), Line), Line);
+                IPCalculator::Calculations::PrintBinaryArray(&AllocatedMatrices[VarName]);
             }
 
             else if (Line.find("I")) //found an IP
             {
                 VarName = this->ParseVarName(this->GetIndexOfFollowingSequence(Line.find("I"), Line), Line);
-            
+
                 AllocatedIPs[VarName] = this->ParseIP(this->GetIndexOfFollowingSequence(Line.find(VarName), Line), Line);
+                IPCalculator::Calculations::PrintIP(&AllocatedIPs[VarName]);
             }
 
         }
@@ -67,22 +69,36 @@ void IPCalculator::Parser::ParseAndPassResults()
         {
             unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("RAV"), Line);
 
-            IsIP = (Line[ParsingPosition] == 'I') ? true : false; // Determines the type of the variable to reassign
+            IsIP = (Line[ParsingPosition] == 'I') ? true : false;
+            ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+            RAVFlag = (Line[ParsingPosition] == 'R') ? true : false;
 
-            RAVFlag = (Line[ParsingPosition + 6] == 'R') ? true : false; // Determines whether the reassignment happens after another instruction, or from a passed value
 
-            if(IsIP && !RAVFlag)
+            if(RAVFlag)
             {
-                ParsingPosition += 8;
+                this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+                RAVVarName = this->ParseVarName(ParsingPosition, Line);
+                continue;
+            }
 
-                while(Line[ParsingPosition] != ' ')
-                {
-                    RAVVarName += Line[ParsingPosition];
-                    ParsingPosition++;
-                }
+            else if(IsIP && !RAVFlag)
+            {
+                this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+                RAVVarName = this->ParseVarName(ParsingPosition, Line);
+            
+                AllocatedIPs[RAVVarName] = this->ParseIP(ParsingPosition, Line);
+                RAVFlag = false;
+                IsIP = false;
+                RAVVarName = "";
+            }
 
+            else if(!IsIP && !RAVFlag)
+            {
+                this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+                RAVVarName = this->ParseVarName(ParsingPosition, Line);
 
-
+                AllocatedMatrices[RAVVarName] = this->ParseMatrix(ParsingPosition, Line);
+                RAVVarName = "";
             }
 
         }
@@ -92,7 +108,7 @@ void IPCalculator::Parser::ParseAndPassResults()
             unsigned short int ParsingPosition = Line.find("PRT");
         }
 
-        else if(Line.find("GSM") != std::string::npos) // if it has found the instruction
+        else if(Line.find("GSM") != std::string::npos)  // REFACTOR @TODO
         {
             unsigned int ParsingPosition = Line.find("GSM") + 4;
             std::string Var1 = "";
@@ -123,7 +139,7 @@ void IPCalculator::Parser::ParseAndPassResults()
             delete Calculator;
         }
 
-        else if(Line.find("GFH") != std::string::npos)
+        else if(Line.find("GFH") != std::string::npos) // REFACTOR @TODO
         {
             unsigned short int ParsingPosition = Line.find("GFH") + 4;
 
@@ -152,11 +168,13 @@ void IPCalculator::Parser::ParseAndPassResults()
 unsigned short int IPCalculator::Parser::GetIndexOfFollowingSequence(size_t LastKnownCharPosition, const std::string &Line)
 {
     unsigned short int ReturningIndex = LastKnownCharPosition;
-    
+
+    while(Line[ReturningIndex] != ' ')
+        ReturningIndex++;
     while(Line[ReturningIndex] == ' ')
         ReturningIndex++;
 
-    return ReturningIndex;        
+    return ReturningIndex;
 }
 
 matrix IPCalculator::Parser::ParseMatrix(size_t StartIndex, const std::string &Line) // Both value parsers always assume that the input will be a valid length. Fix later.
@@ -193,8 +211,8 @@ matrix IPCalculator::Parser::ParseMatrix(size_t StartIndex, const std::string &L
 
     }
 
-    return ReturningMatrix;    
-    
+    return ReturningMatrix;
+
 }
 
 std::string IPCalculator::Parser::ParseVarName(size_t StartIndex, const std::string &Line)
@@ -211,7 +229,7 @@ std::string IPCalculator::Parser::ParseVarName(size_t StartIndex, const std::str
     return ReturningString;
 }
 
-IPCalculator::IP IPCalculator::Parser::ParseIP(size_t StartIndex, const std::string &Line) 
+IPCalculator::IP IPCalculator::Parser::ParseIP(size_t StartIndex, const std::string &Line)
 {
     IPCalculator::IP ReturningIP(0,0,0,0);
     size_t ParsingPosition = StartIndex;
@@ -221,7 +239,7 @@ IPCalculator::IP IPCalculator::Parser::ParseIP(size_t StartIndex, const std::str
 
     while(CurrentOctet <= 4)
     {
-      
+
         if(Line[ParsingPosition] == '.' || ParsingPosition == Line.size())
         {
             ReturningIP.AssignOctet(CurrentOctet, std::stoi(OctetValue));
