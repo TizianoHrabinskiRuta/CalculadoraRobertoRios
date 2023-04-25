@@ -31,16 +31,17 @@ ReassignVariable
 
 Description:
 Reassigns a variable from either the result of an instruction, or from a direct value. Mod1 specifies the type. Mod2 specifies if its from an absolute value, or from
-the result of the following instruction.
+the result of the next instruction which has a result.
 
 Example program:
 
 VAR I Var1 192.168.0.1
+VAR I Var2 192.168.20.50
 
 RAV I A Var1 10.10.30.22
 RAV I R Var1 
 
-
+GSM Var1, Var2
 
 
 GSM: 
@@ -78,3 +79,11 @@ Example program:
 VAR I SubnetID 192.168.0.1
 
 GFH SubnetID
+
+PRT:
+Print 
+
+-Mod1: I | M 
+-Param1: VarName
+
+Description: Prints out the value of a variable given the type and name

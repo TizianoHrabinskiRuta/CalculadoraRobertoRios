@@ -17,7 +17,9 @@ int main()
 
     IPCalculator::Parser* Parser = new IPCalculator::Parser();
 
+
     Parser->ParseAndPassResults();
+
 
     std::cin >> Input;
     return 0;
@@ -35,11 +37,12 @@ void IPCalculator::Parser::ParseAndPassResults()
     std::map<std::string, matrix> AllocatedMatrices;
     std::map<std::string, IPCalculator::IP> AllocatedIPs;
 
+    bool ForcefulTerminationFlag = false;
     bool RAVFlag = false;
     bool IsIP = true;
     std::string RAVVarName = "";
 
-    while(getline(File, Line))
+    while(getline(File, Line) && !ForcefulTerminationFlag)
     {
 
         if(Line.find("VAR") != std::string::npos) // Breaks when there is more than one space between different mods or params. Think of fix later.
@@ -52,7 +55,6 @@ void IPCalculator::Parser::ParseAndPassResults()
                 VarName = this->ParseVarName(this->GetIndexOfFollowingSequence(Line.find("M"), Line), Line);
 
                 AllocatedMatrices[VarName] = this->ParseMatrix(this->GetIndexOfFollowingSequence(Line.find(VarName), Line), Line);
-                IPCalculator::Calculations::PrintBinaryArray(&AllocatedMatrices[VarName]);
             }
 
             else if (Line.find("I")) //found an IP
@@ -60,12 +62,11 @@ void IPCalculator::Parser::ParseAndPassResults()
                 VarName = this->ParseVarName(this->GetIndexOfFollowingSequence(Line.find("I"), Line), Line);
 
                 AllocatedIPs[VarName] = this->ParseIP(this->GetIndexOfFollowingSequence(Line.find(VarName), Line), Line);
-                IPCalculator::Calculations::PrintIP(&AllocatedIPs[VarName]);
             }
 
         }
 
-        else if(Line.find ("RAV") != std::string::npos) // current WIP
+        else if(Line.find ("RAV") != std::string::npos)
         {
             unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("RAV"), Line);
 
@@ -76,16 +77,17 @@ void IPCalculator::Parser::ParseAndPassResults()
 
             if(RAVFlag)
             {
-                this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+                ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+
                 RAVVarName = this->ParseVarName(ParsingPosition, Line);
                 continue;
             }
 
             else if(IsIP && !RAVFlag)
             {
-                this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+                ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
                 RAVVarName = this->ParseVarName(ParsingPosition, Line);
-            
+
                 AllocatedIPs[RAVVarName] = this->ParseIP(ParsingPosition, Line);
                 RAVFlag = false;
                 IsIP = false;
@@ -94,7 +96,7 @@ void IPCalculator::Parser::ParseAndPassResults()
 
             else if(!IsIP && !RAVFlag)
             {
-                this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+                ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
                 RAVVarName = this->ParseVarName(ParsingPosition, Line);
 
                 AllocatedMatrices[RAVVarName] = this->ParseMatrix(ParsingPosition, Line);
@@ -106,57 +108,115 @@ void IPCalculator::Parser::ParseAndPassResults()
         else if(Line.find("PRT") != std::string::npos)
         {
             unsigned short int ParsingPosition = Line.find("PRT");
+            bool IsIP = false;
+            ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+
+            IsIP = (Line[ParsingPosition] == 'I') ? true : false;
+            ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+
+            std::string VarName = this->ParseVarName(ParsingPosition, Line);
+
+            std::map<std::string, matrix>::iterator MatrixIterator;
+            std::map<std::string, IPCalculator::IP>::iterator IPIterator;
+
+            if(IsIP)
+            {
+                IPIterator = AllocatedIPs.find(VarName);
+                if(IPIterator == AllocatedIPs.end())
+                {
+                    std::cout << "Variable of type IP named " << VarName << " hasn't been declared yet." << std::endl;
+                    ForcefulTerminationFlag = true;
+                    continue;
+                }
+                std::cout << "IP: " << VarName << " = ";
+                IPCalculator::Calculations::PrintIP(&AllocatedIPs[VarName]);
+            }
+            else
+            {
+                MatrixIterator = AllocatedMatrices.find(VarName);
+                if(MatrixIterator == AllocatedMatrices.end())
+                {
+                    std::cout << "Variable of type matrix named " << VarName << " hasn't been declared yet." << std::endl;
+                    ForcefulTerminationFlag = true;
+                    continue;
+                }
+
+                std::cout << "matrix: " << VarName << " = ";
+                IPCalculator::Calculations::PrintBinaryArray(&AllocatedMatrices[VarName]);
+
+            }
+
         }
 
-        else if(Line.find("GSM") != std::string::npos)  // REFACTOR @TODO
+        else if(Line.find("GSM") != std::string::npos)
         {
-            unsigned int ParsingPosition = Line.find("GSM") + 4;
-            std::string Var1 = "";
-            std::string Var2 = "";
+            unsigned int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("GSM"), Line);
+            std::string Var1 = this->ParseVarName(ParsingPosition, Line);
 
-            while(Line[ParsingPosition] != ',')
-            {
-                Var1 += Line[ParsingPosition];
-                ParsingPosition++;
-            }
-
-            ParsingPosition += 2;
-
-            while(ParsingPosition <= Line.size() - 1)
-            {
-                Var2 += Line[ParsingPosition];
-                ParsingPosition++;
-            }
+            ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+            std::string Var2 = this->ParseVarName(ParsingPosition, Line);
 
             IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
 
             IPCalculator::IP Result(0,0,0,0);
+
             matrix Matrix1 = Calculator->IPToBinaryArray(&AllocatedIPs[Var1]);
             matrix Matrix2 = Calculator->IPToBinaryArray(&AllocatedIPs[Var2]);
 
             Result = Calculator->GetSubnetMask(&Matrix1, &Matrix2);
+            std::cout << "Subnet Mask: ";
             Calculator->PrintIP(&Result);
+
+            if(RAVFlag)
+            {
+                if(IsIP)
+                {
+                    AllocatedIPs[RAVVarName] = Result;
+                    RAVFlag = false;
+                    IsIP = false;
+                    RAVVarName = "";
+                }
+
+                else
+                {
+                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Result);
+                    RAVFlag = false;
+                    RAVVarName = "";
+                }
+            }
+
             delete Calculator;
         }
 
-        else if(Line.find("GFH") != std::string::npos) // REFACTOR @TODO
+        else if(Line.find("GFH") != std::string::npos) 
         {
-            unsigned short int ParsingPosition = Line.find("GFH") + 4;
+            unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("GFH"), Line);
 
-            std::string Var1 = "";
-
-            while(ParsingPosition <= Line.size() - 1)
-            {
-
-                Var1 += Line[ParsingPosition];
-                ParsingPosition++;
-            }
+            std::string Var1 = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
 
             IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
 
             IPCalculator::IP Temp(0,0,0,0);
             Temp = Calculator->GetFirstHost(&AllocatedIPs[Var1]);
             Calculator->PrintIP(&Temp);
+
+            if(RAVFlag)
+            {
+                if(IsIP)
+                {
+                    AllocatedIPs[RAVVarName] = Temp;
+                    RAVVarName = "";
+                    RAVFlag = false;
+                    IsIP = false;
+                }
+                else
+                {
+                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Temp);
+                    RAVVarName = "";
+                    RAVFlag = false;
+                    IsIP = false;
+                }
+            }
 
             delete Calculator;
         }
@@ -220,7 +280,7 @@ std::string IPCalculator::Parser::ParseVarName(size_t StartIndex, const std::str
     std::string ReturningString = "";
     unsigned short int ParsingPosition = StartIndex;
 
-    while(Line[ParsingPosition] != ' ')
+    while(Line[ParsingPosition] != ' ' &&  Line[ParsingPosition] != '\n' && Line[ParsingPosition] != '\r' && Line[ParsingPosition] != ',' && ParsingPosition < Line.size())
     {
         ReturningString += Line[ParsingPosition];
         ParsingPosition++;
@@ -397,10 +457,8 @@ IPCalculator::IP IPCalculator::Calculations::GetSubnetMask(matrix *SubnetID, mat
         break;
   }
 
-    IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
 
-    IPCalculator::IP ReturningIP = Calculator->BinaryArrayToIP(&MaskMatrix);
-    delete Calculator;
+    IPCalculator::IP ReturningIP = this->BinaryArrayToIP(&MaskMatrix);
 
     return ReturningIP;
 
