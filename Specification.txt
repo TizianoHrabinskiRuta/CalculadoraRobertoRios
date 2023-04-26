@@ -80,6 +80,45 @@ VAR I SubnetID 192.168.0.1
 
 GFH SubnetID
 
+GLH:
+GetLastHost
+
+-Param1: BroadcastID
+
+Description: 
+Returns the last host given the BroadcastID
+
+Example program:
+
+VAR I Subnet 192.168.10.255
+VAR I Result 0.0.0.0
+
+RAV I R Result
+
+GLH Subnet
+
+
+GSI:
+GetSubnetID
+-Param1: I SubnetMask
+-Param2: I BroadcastID
+
+Description:
+Returns the SubnetID given the mask and the BroadcastID.
+
+Example program:
+
+VAR I Subnet 255.255.240.0
+VAR I Broadcast 192.168.10.255
+VAR I Result 0.0.0.0
+
+RAV I R Result
+
+GSI Subnet, Broadcast
+
+PRT I Result
+
+
 PRT:
 Print 
 

@@ -188,17 +188,21 @@ void IPCalculator::Parser::ParseAndPassResults()
             delete Calculator;
         }
 
-        else if(Line.find("GFH") != std::string::npos) 
+        else if(Line.find("GFH") != std::string::npos)
         {
             unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("GFH"), Line);
 
-            std::string Var1 = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+            std::string Var1 = this->ParseVarName(ParsingPosition, Line);
 
             IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
 
             IPCalculator::IP Temp(0,0,0,0);
             Temp = Calculator->GetFirstHost(&AllocatedIPs[Var1]);
-            Calculator->PrintIP(&Temp);
+            if(Temp.IsInvalidIP)
+            {
+                ForcefulTerminationFlag = true;
+                continue;
+            }
 
             if(RAVFlag)
             {
@@ -217,6 +221,77 @@ void IPCalculator::Parser::ParseAndPassResults()
                     IsIP = false;
                 }
             }
+
+            delete Calculator;
+        }
+
+        else if(Line.find("GLH") != std::string::npos)
+        {
+            unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("GLH"), Line);
+
+            std::string Var1 = this->ParseVarName(ParsingPosition, Line);
+
+            IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
+            IPCalculator::IP Temp = Calculator->GetLastHost(&AllocatedIPs[Var1]);
+
+            if(Temp.IsInvalidIP)
+            {
+                ForcefulTerminationFlag = true;
+                continue;
+            }
+
+            if(RAVFlag)
+            {
+                if(IsIP)
+                {
+                    AllocatedIPs[RAVVarName] = Temp;
+                    RAVVarName = "";
+                    RAVFlag = false;
+                    IsIP = false;
+                }
+                else
+                {
+                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Temp);
+                    RAVVarName = "";
+                    RAVFlag = false;
+                    IsIP = false;
+                }
+            }
+
+            delete Calculator;
+
+        }
+
+
+        else if (Line.find("GSI") != std::string::npos)
+        {
+            unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("GSI"), Line);
+
+            std::string Var1 = this->ParseVarName(ParsingPosition, Line);
+            ParsingPosition = this->GetIndexOfFollowingSequence(ParsingPosition, Line);
+            std::string Var2 = this->ParseVarName(ParsingPosition, Line);
+
+            IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
+
+            IPCalculator::IP Temp = Calculator->GetSubnetID(&AllocatedIPs[Var1], &AllocatedIPs[Var2]);
+
+            if(RAVFlag)
+            {
+                if(IsIP)
+                {
+                    AllocatedIPs[RAVVarName] = Temp;
+                    RAVVarName = "";
+                    RAVFlag = false;
+                    IsIP = false;
+                }
+                else
+                {
+                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Temp);
+                    RAVVarName = "";
+                    RAVFlag = false;
+                    IsIP = false;
+                }
+        }
 
             delete Calculator;
         }
@@ -503,7 +578,6 @@ IPCalculator::IP IPCalculator::Calculations::GetFirstHost(IPCalculator::IP *Subn
     {
         std::cout << "Ha calculado mal la ID de subred, ya que el cuarto octeto no puede superar 0. " << std::endl;
         ReturningIP.IsInvalidIP = true;
-        return ReturningIP;
     }
 
    ReturningIP = *(SubnetID);
@@ -520,8 +594,8 @@ IPCalculator::IP IPCalculator::Calculations::GetLastHost(IPCalculator::IP *Broad
     {
         std::cout << "La ip ingresada es invalida, ya que el cuarto octeto no puede ser otro valor que 255." << std::endl;
         ReturningIP.IsInvalidIP = true;
-        return ReturningIP;
     }
+
 
     ReturningIP = *(BroadcastID);
 
