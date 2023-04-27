@@ -45,7 +45,7 @@ void IPCalculator::Parser::ParseAndPassResults()
     while(getline(File, Line) && !ForcefulTerminationFlag)
     {
 
-        if(Line.find("VAR") != std::string::npos) // Breaks when there is more than one space between different mods or params. Think of fix later.
+        if(Line.find("VAR") != std::string::npos)
         {
 
             std::string VarName = "";
@@ -164,25 +164,16 @@ void IPCalculator::Parser::ParseAndPassResults()
             matrix Matrix2 = Calculator->IPToBinaryArray(&AllocatedIPs[Var2]);
 
             Result = Calculator->GetSubnetMask(&Matrix1, &Matrix2);
-            std::cout << "Subnet Mask: ";
-            Calculator->PrintIP(&Result);
 
-            if(RAVFlag)
+            if(IsIP)
+            { 
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedIPs);
+                this->SolveRAV(Info, Temp);
+            }
+            else
             {
-                if(IsIP)
-                {
-                    AllocatedIPs[RAVVarName] = Result;
-                    RAVFlag = false;
-                    IsIP = false;
-                    RAVVarName = "";
-                }
-
-                else
-                {
-                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Result);
-                    RAVFlag = false;
-                    RAVVarName = "";
-                }
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedMatrices);
+                this->SolveRAV(Info, Temp);
             }
 
             delete Calculator;
@@ -204,22 +195,15 @@ void IPCalculator::Parser::ParseAndPassResults()
                 continue;
             }
 
-            if(RAVFlag)
+            if(IsIP)
+            { 
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedIPs);
+                this->SolveRAV(Info, Temp);
+            }
+            else
             {
-                if(IsIP)
-                {
-                    AllocatedIPs[RAVVarName] = Temp;
-                    RAVVarName = "";
-                    RAVFlag = false;
-                    IsIP = false;
-                }
-                else
-                {
-                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Temp);
-                    RAVVarName = "";
-                    RAVFlag = false;
-                    IsIP = false;
-                }
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedMatrices);
+                this->SolveRAV(Info, Temp);
             }
 
             delete Calculator;
@@ -240,22 +224,15 @@ void IPCalculator::Parser::ParseAndPassResults()
                 continue;
             }
 
-            if(RAVFlag)
+            if(IsIP)
+            { 
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedIPs);
+                this->SolveRAV(Info, Temp);
+            }
+            else
             {
-                if(IsIP)
-                {
-                    AllocatedIPs[RAVVarName] = Temp;
-                    RAVVarName = "";
-                    RAVFlag = false;
-                    IsIP = false;
-                }
-                else
-                {
-                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Temp);
-                    RAVVarName = "";
-                    RAVFlag = false;
-                    IsIP = false;
-                }
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedMatrices);
+                this->SolveRAV(Info, Temp);
             }
 
             delete Calculator;
@@ -275,28 +252,74 @@ void IPCalculator::Parser::ParseAndPassResults()
 
             IPCalculator::IP Temp = Calculator->GetSubnetID(&AllocatedIPs[Var1], &AllocatedIPs[Var2]);
 
-            if(RAVFlag)
+            if(IsIP)
+            { 
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedIPs);
+                this->SolveRAV(Info, Temp);
+            }
+            else
             {
-                if(IsIP)
-                {
-                    AllocatedIPs[RAVVarName] = Temp;
-                    RAVVarName = "";
-                    RAVFlag = false;
-                    IsIP = false;
-                }
-                else
-                {
-                    AllocatedMatrices[RAVVarName] = Calculator->IPToBinaryArray(&Temp);
-                    RAVVarName = "";
-                    RAVFlag = false;
-                    IsIP = false;
-                }
-        }
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedMatrices);
+                this->SolveRAV(Info, Temp);
+            }
 
             delete Calculator;
         }
 
+        else if(Line.find("GDM") != std::string::npos)
+        {
+            unsigned short int ParsingPosition = this->GetIndexOfFollowingSequence(Line.find("GDM"), Line);
+
+            int Value = Line[ParsingPosition] - '0';
+
+            IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
+
+            IPCalculator::IP Result = Calculator->GetDecimalMask(Value);
+
+             if(IsIP)
+            { 
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedIPs);
+                this->SolveRAV(Info, Result);
+            }
+            else
+            {
+                RAVInfo Info(&RAVVarName, &IsIP, &RAVFlag, &AllocatedMatrices);
+                this->SolveRAV(Info, Result);
+            }
+
+            delete Calculator;
+        }
+
+
+
     }
+
+}
+
+void IPCalculator::Parser::SolveRAV(RAVInfo &Data, const IPCalculator::IP &Value)
+{
+    if(!*Data.RAVVarFlag)
+        return;
+
+
+    if(*Data.IsIP)
+    {
+        Data.AllocatedIPsPtr[0][*Data.VarName] = Value;
+        *Data.IsIP = false;
+        *Data.RAVVarFlag = false;
+        *Data.VarName = "";
+        return;
+    }
+
+    IPCalculator::IP Temp = Value;
+
+    IPCalculator::Calculations *Calculator = new IPCalculator::Calculations();
+    Data.AllocatedMatricesPtr[0][*Data.VarName] = Calculator->IPToBinaryArray(&Temp);
+    *Data.RAVVarFlag = false;
+    *Data.VarName = "";
+    *Data.IsIP = false;
+    
+    delete Calculator;
 
 }
 

@@ -125,7 +125,7 @@ namespace IPCalculator
          IPCalculator::IP GetBroadcastID(IPCalculator::IP *SubnetID, IPCalculator::IP *SubnetMask); // Prone to give errors when dealing with something like 1.1.0.0 or 1.0.0.0
 
          static void PrintIP(IPCalculator::IP *IPToPrint);
-         static void PrintBinaryArray(matrix *MatrixToPrint);         
+         static void PrintBinaryArray(matrix *MatrixToPrint);
 
     };
 
@@ -135,10 +135,45 @@ namespace IPCalculator
 
          void ParseAndPassResults();
 
-         IPCalculator::IP ParseIP(size_t StartIndex, const std::string &Line); 
+         IPCalculator::IP ParseIP(size_t StartIndex, const std::string &Line);
          matrix ParseMatrix(size_t StartIndex, const std::string &Line);
          std::string ParseVarName(size_t StartIndex, const std::string &Line);
          unsigned short int GetIndexOfFollowingSequence(size_t LastKnownCharPosition, const std::string &Line);
+
+
+        private:
+
+         struct RAVInfo
+         {
+            RAVInfo(std::string *RAVVarName, bool *IsIPFlag, bool *RAVFlag, std::map<std::string, matrix> *AllocatedMatrices)
+            {
+                this->VarName = RAVVarName;
+                this->IsIP = IsIPFlag;
+                this->RAVVarFlag = RAVFlag;
+
+                this->AllocatedMatricesPtr = AllocatedMatrices;
+            }
+
+            RAVInfo(std::string *RAVVarName, bool *IsIPFlag, bool *RAVFlag, std::map<std::string, IPCalculator::IP> *AllocatedIPs)
+            {
+                this->VarName = RAVVarName;
+                this->IsIP = IsIPFlag;
+                this->RAVVarFlag = RAVFlag;
+                this->AllocatedIPsPtr = AllocatedIPs;
+            }
+
+
+            std::string *VarName;
+            bool *IsIP;
+            bool *RAVVarFlag;
+
+            std::map<std::string, matrix> *AllocatedMatricesPtr;
+            std::map<std::string, IPCalculator::IP> *AllocatedIPsPtr;
+         };
+
+        private:
+         void SolveRAV(RAVInfo &Data, const IPCalculator::IP &Value);
+
 
     };
 

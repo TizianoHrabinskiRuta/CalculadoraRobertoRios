@@ -26,8 +26,8 @@ ReassignVariable
 
 -Mod1: I || M
 -Mod2: A || R
--Param1: VarName
--Param2: Value
+-Param1: string VarName
+-Param2: (optional) Value
 
 Description:
 Reassigns a variable from either the result of an instruction, or from a direct value. Mod1 specifies the type. Mod2 specifies if its from an absolute value, or from
@@ -47,8 +47,8 @@ GSM Var1, Var2
 GSM: 
 GetSubnetMask
 
--Param1: SubnetID
--Param2: BroadcastID
+-Param1: I SubnetID
+-Param2: I BroadcastID
 
 Description:
 Returns the subnet mask given the SubnetID and the BroadcastID. Does not check for impossibilities or edge cases.
@@ -69,7 +69,7 @@ Notes: The space between the comma and the second parameter is compulsory.
 GFH:
 GetFirstHost
 
--Param1: SubnetID
+-Param1: I SubnetID
 
 Description:
 Returns the first host given the SubnetID
@@ -83,7 +83,7 @@ GFH SubnetID
 GLH:
 GetLastHost
 
--Param1: BroadcastID
+-Param1: I BroadcastID
 
 Description: 
 Returns the last host given the BroadcastID
@@ -100,6 +100,7 @@ GLH Subnet
 
 GSI:
 GetSubnetID
+
 -Param1: I SubnetMask
 -Param2: I BroadcastID
 
@@ -115,6 +116,24 @@ VAR I Result 0.0.0.0
 RAV I R Result
 
 GSI Subnet, Broadcast
+
+PRT I Result
+
+
+GDM:
+GetDecimalMask
+-Param1: int Mask
+
+Description:
+Returns the representation of the subnet mask in an IP, given the /x mask.
+
+Example program:
+
+VAR I Result 0.0.0.0
+
+RAV I R Result
+
+GDM 18
 
 PRT I Result
 
